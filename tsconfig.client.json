@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "lib": ["esnext", "dom"],
+        "strict": true,
+        "outFile": "./dist/index.js",
+        "moduleResolution": "node",
+        "module": "amd",
+        "sourceMap": true,
+        "inlineSources": true
+    },
+    "include": [
+        "src/index.ts"
+    ]
+}
