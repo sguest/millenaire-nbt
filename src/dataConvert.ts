@@ -37,9 +37,9 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
 
         for(let left = 0; left < png.context.canvas.width; left += width + 1) {
             let layerData = png.context.getImageData(left, 0, width, length).data;
-            for(let x = 0; x < width; x++) {
-                for(let z = 0; z < length; z++) {
-                    let baseIndex = (x + z * width) * 4;
+            for(let x = 0; x < length; x++) {
+                for(let z = 0; z < width; z++) {
+                    let baseIndex = (x * width + width - z - 1) * 4;
                     let colourString = `${layerData[baseIndex]}/${layerData[baseIndex + 1]}/${layerData[baseIndex + 2]}`;
                     let paletteItem = paletteLookup[colourString];
                     if(!paletteItem) {
