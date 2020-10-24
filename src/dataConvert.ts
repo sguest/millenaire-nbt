@@ -58,6 +58,27 @@ function blocklistToPalette(blocklistItem: BlocklistItem, index: number): Palett
     return null;
 }
 
+function getBedFootPalette(headPalette: PaletteItem, index: number): PaletteItem {
+    let footProperties: {[key: string]: string} = {};
+    for(let propertyName in headPalette.properties) {
+        footProperties[propertyName] = headPalette.properties[propertyName];
+    }
+    footProperties['part'] = 'foot';
+    return {
+        name: headPalette.name,
+        index: index,
+        placeAfter: headPalette.placeAfter,
+        properties: footProperties,
+    };
+}
+
+let bedDeltas: {[key: string]: {x: number, z: number}} = {
+    north: {x: 0, z: 1},
+    south: {x: 0, z: -1},
+    west: {x: 1, z: 0},
+    east: {x: -1, z: 0},
+}
+
 export function convertBuilding(buildingData: FileBuildingData, blocklist: Blocklist): BuildingData[] {
     let buildings: BuildingData[] = [];
     let width = buildingData.textFile!.width;
@@ -90,12 +111,24 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                         }
                     }
                     if(paletteItem) {
-                        let block = {x, y, z, paletteIndex: paletteItem.index};
+                        let newBlocks = [{x, y, z, paletteIndex: paletteItem.index}];
+                        if(paletteItem.properties.part === 'head' && !!paletteItem.properties.facing) {
+                            // Assuming this is the head of a bed, add the foot
+                            let fakeColourString = `${paletteItem.name}-foot-${paletteItem.properties.facing}`;
+                            let footPalette = paletteLookup[fakeColourString];
+                            if(!footPalette) {
+                                footPalette = getBedFootPalette(paletteItem, paletteIndex);
+                                paletteArray.push(footPalette);
+                                paletteIndex++;
+                            }
+                            let delta = bedDeltas[paletteItem.properties.facing];
+                            newBlocks.push({x: x + delta.x, y, z: z + delta.z, paletteIndex: footPalette.index});
+                        }
                         if(paletteItem.placeAfter) {
-                            afterBlocks.push(block);
+                            afterBlocks.push(...newBlocks);
                         }
                         else {
-                            blocks.push(block);
+                            blocks.push(...newBlocks);
                         }
                     }
                 }
