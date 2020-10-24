@@ -35,7 +35,7 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
         let y = 0;
         let blocks: BlockData[] = [];
 
-        for(let left = 0; left < png.image.width; left += width + 1) {
+        for(let left = 0; left < png.context.canvas.width; left += width + 1) {
             let layerData = png.context.getImageData(left, 0, width, length).data;
             for(let x = 0; x < width; x++) {
                 for(let z = 0; z < length; z++) {

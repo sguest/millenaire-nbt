@@ -9,7 +9,6 @@ export interface FileBuildingData {
 
 export interface PngBuildingData {
     context: CanvasRenderingContext2D;
-    image: HTMLImageElement;
     index: number;
 }
 
@@ -24,8 +23,10 @@ export function parseImage(file: JSZip.JSZipObject, index: number): Promise<PngB
         let context = canvas.getContext('2d')!;
         let image = new Image();
         image.onload = () => {
-            context?.drawImage(image, 0, 0);
-            resolve({ context, index, image });
+            context.canvas.width = image.width;
+            context.canvas.height = image.height;
+            context.drawImage(image, 0, 0);
+            resolve({ context, index });
         }
         file.async('blob').then(blob => {
             image.src = URL.createObjectURL(blob);
