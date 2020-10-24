@@ -1,10 +1,12 @@
 import { FileBuildingData } from "./fileParser";
-import { Blocklist } from './blocklist';
+import { Blocklist, BlocklistItem } from './blocklist';
+import customBlocklist from './customBlocklist';
 
 export interface PaletteItem {
     name: string;
     index: number;
     properties: { [key: string]: string };
+    placeAfter: boolean;
 }
 
 export interface BlockData {
@@ -24,6 +26,38 @@ export interface BuildingData {
     blocks: BlockData[];
 }
 
+function blocklistToPalette(blocklistItem: BlocklistItem, index: number): PaletteItem | null {
+    if(blocklistItem.blockId.length) {
+        let stateValues: {[key: string]: string} = {};
+        if(blocklistItem.stateValues.length) {
+            for(let stateItem of blocklistItem.stateValues.split(',')) {
+                let stateParts = stateItem.split('=');
+                stateValues[stateParts[0]] = stateParts[1];
+            }
+        }
+
+        return {
+            name: blocklistItem.blockId,
+            properties: stateValues,
+            index,
+            placeAfter: blocklistItem.placeAfter,
+        };
+    }
+    else {
+        let custom = customBlocklist[blocklistItem.identifier];
+        if(custom) {
+            return {
+                name: custom.id,
+                properties: custom.properties || {},
+                index,
+                placeAfter: !!custom.placeAfter,
+            }
+        }
+    }
+
+    return null;
+}
+
 export function convertBuilding(buildingData: FileBuildingData, blocklist: Blocklist): BuildingData[] {
     let buildings: BuildingData[] = [];
     let width = buildingData.textFile!.width;
@@ -34,6 +68,7 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
         let paletteIndex = 0;
         let y = 0;
         let blocks: BlockData[] = [];
+        let afterBlocks: BlockData[] = [];
 
         for(let left = 0; left < png.context.canvas.width; left += width + 1) {
             let layerData = png.context.getImageData(left, 0, width, length).data;
@@ -41,32 +76,27 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                 for(let z = 0; z < width; z++) {
                     let baseIndex = (x * width + width - z - 1) * 4;
                     let colourString = `${layerData[baseIndex]}/${layerData[baseIndex + 1]}/${layerData[baseIndex + 2]}`;
-                    let paletteItem = paletteLookup[colourString];
+                    let paletteItem: PaletteItem | null = paletteLookup[colourString];
                     if(!paletteItem) {
                         let blocklistItem = blocklist[colourString];
                         if(!blocklistItem) {
                             throw new Error(`Unrecognized colour ${colourString} loading building ${buildingData.path}`);
                         }
-                        let stateValues: {[key: string]: string} = {};
-                        if(blocklistItem.stateValues.length) {
-                            for(let stateItem of blocklistItem.stateValues.split(',')) {
-                                let stateParts = stateItem.split('=');
-                                stateValues[stateParts[0]] = stateParts[1];
-                            }
-                        }
-                        if(blocklistItem.blockId.length) {
-                            paletteItem = {
-                                name: blocklistItem.blockId,
-                                properties: stateValues,
-                                index: paletteIndex,
-                            };
+                        paletteItem = blocklistToPalette(blocklistItem, paletteIndex);
+                        if(paletteItem) {
                             paletteLookup[colourString] = paletteItem;
                             paletteArray.push(paletteItem);
                             paletteIndex++;
                         }
                     }
                     if(paletteItem) {
-                        blocks.push({x, y, z, paletteIndex: paletteItem.index});
+                        let block = {x, y, z, paletteIndex: paletteItem.index};
+                        if(paletteItem.placeAfter) {
+                            afterBlocks.push(block);
+                        }
+                        else {
+                            blocks.push(block);
+                        }
                     }
                 }
             }
@@ -79,7 +109,7 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
             length,
             height: y,
             palette: paletteArray,
-            blocks,
+            blocks: blocks.concat(afterBlocks),
         });
     }
 
