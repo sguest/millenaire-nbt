@@ -83,11 +83,15 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
     let buildings: BuildingData[] = [];
     let width = buildingData.textFile!.width;
     let length = buildingData.textFile!.length;
+    let startLevel = 0;
     for(let png of buildingData.pngs) {
         let paletteLookup: {[key: string]: PaletteItem} = {};
         let paletteArray: PaletteItem[] = [];
         let paletteIndex = 0;
-        let y = 0;
+        if(buildingData.textFile?.startLevels[png.index] !== undefined) {
+            startLevel = buildingData.textFile?.startLevels[png.index];
+        }
+        let y = startLevel;
         let blocks: BlockData[] = [];
         let afterBlocks: BlockData[] = [];
 
