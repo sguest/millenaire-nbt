@@ -10,8 +10,7 @@ export function saveFile(buildings: NbtFile[]) {
     let zip = new JSZip();
 
     for(let building of buildings) {
-        //zip.file(building.path, new Zlib.Gzip(building.data).compress());
-        zip.file(building.path, building.data);
+        zip.file(building.path, new Zlib.Gzip(new Uint8Array(building.data)).compress());
     }
 
     zip.generateAsync({type: 'blob'}).then(blob => {
