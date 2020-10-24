@@ -40,17 +40,19 @@ export function start() {
                         promises: [],
                     };
                     currentBuilding.promises.push(new Promise((resolve, reject) => {
+                        let thisBuilding = currentBuilding!;
                         parseTextFile(entry).then(data => {
-                            currentBuilding!.textFile = data;
+                            thisBuilding.textFile = data;
                             resolve();
                         })
                     }));
                 }
                 else {
                     currentBuilding?.promises.push(new Promise((resolve, reject) => {
+                        let thisBuilding = currentBuilding!;
                         let index = +path.replace(/\.png$/, '')?.match(/\d+$/)![0];
                         parseImage(entry, index).then(data => {
-                            currentBuilding?.pngs.push(data);
+                            thisBuilding.pngs.push(data);
                             resolve();
                         })
                     }));
