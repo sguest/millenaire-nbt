@@ -47,8 +47,7 @@ export function writeBuildings(buildings: BuildingData[]): NbtFile[] {
                 }}
             }
         }
-        console.log(nbtValues);
-        results.push({ path: building.path + '.nbt', data: (window as any).nbt.writeUncompressed(nbtValues) });
+        results.push({ path: building.path + '.nbt', data: window.nbt.writeUncompressed(nbtValues) });
     }
 
     return results;
