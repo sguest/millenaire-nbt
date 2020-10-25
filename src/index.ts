@@ -51,7 +51,7 @@ export function start() {
                     currentBuilding?.promises.push(new Promise((resolve, reject) => {
                         let thisBuilding = currentBuilding!;
                         let index = +path.replace(/\.png$/, '')?.match(/\d+$/)![0];
-                        parseImage(entry, index).then(data => {
+                        parseImage(entry, index, path).then(data => {
                             thisBuilding.pngs.push(data);
                             resolve();
                         })

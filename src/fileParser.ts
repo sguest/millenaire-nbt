@@ -8,6 +8,7 @@ export interface FileBuildingData {
 }
 
 export interface PngBuildingData {
+    path: string;
     context: CanvasRenderingContext2D;
     index: number;
 }
@@ -18,7 +19,7 @@ export interface TxtBuildingData {
     startLevels: number[];
 }
 
-export function parseImage(file: JSZip.JSZipObject, index: number): Promise<PngBuildingData> {
+export function parseImage(file: JSZip.JSZipObject, index: number, path: string): Promise<PngBuildingData> {
     return new Promise((resolve, reject) => {
         let canvas = document.createElement('canvas');
         let context = canvas.getContext('2d')!;
@@ -27,7 +28,7 @@ export function parseImage(file: JSZip.JSZipObject, index: number): Promise<PngB
             context.canvas.width = image.width;
             context.canvas.height = image.height;
             context.drawImage(image, 0, 0);
-            resolve({ context, index });
+            resolve({ context, index, path });
         }
         file.async('blob').then(blob => {
             image.src = URL.createObjectURL(blob);
