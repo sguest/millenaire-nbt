@@ -1,6 +1,7 @@
 import { FileBuildingData } from "./fileParser";
 import { Blocklist, BlocklistItem } from './blocklist';
 import customBlocklist from './customBlocklist';
+import customMeta from './customMeta';
 
 export interface PaletteItem {
     name: string;
@@ -30,9 +31,21 @@ function blocklistToPalette(blocklistItem: BlocklistItem, index: number, buildin
     if(blocklistItem.blockId.length) {
         let stateValues: {[key: string]: string} = {};
         if(blocklistItem.stateValues.length) {
-            for(let stateItem of blocklistItem.stateValues.split(',')) {
-                let stateParts = stateItem.split('=');
-                stateValues[stateParts[0]] = stateParts[1];
+            if(isNaN(+blocklistItem.stateValues)) {
+                for(let stateItem of blocklistItem.stateValues.split(',')) {
+                    let stateParts = stateItem.split('=');
+                    stateValues[stateParts[0]] = stateParts[1];
+                }
+            }
+            else if(+blocklistItem.stateValues > 0) {
+                let meta = +blocklistItem.stateValues
+                let blockStateLookup = customMeta[blocklistItem.blockId];
+                if(blockStateLookup && blockStateLookup[meta]) {
+                    stateValues = blockStateLookup[meta];
+                }
+                else {
+                    console.log(`Warning: unrecognized meta value ${meta} for block ID ${blocklistItem.blockId}. Using base version of block.`)
+                }
             }
         }
 
@@ -57,6 +70,15 @@ function blocklistToPalette(blocklistItem: BlocklistItem, index: number, buildin
             properties: { resource: blocklistItem.identifier.replace(/source$/, '') },
             index,
             placeAfter: false,
+        }
+    }
+    else if(/^cultureBannerStanding\d+$/.test(blocklistItem.identifier) || /^villageBannerStanding\d+$/.test(blocklistItem.identifier)) {
+        let rotation = /\d+$/.exec(blocklistItem.identifier)![0];
+        return {
+            name: 'minecraft:standing_banner',
+            properties: { rotation },
+            index,
+            placeAfter: blocklistItem.placeAfter,
         }
     }
     else {
