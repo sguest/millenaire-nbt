@@ -47,7 +47,7 @@ export function start() {
                         })
                     }));
                 }
-                else {
+                else if(/\.png$/.test(path)) {
                     currentBuilding?.promises.push(new Promise((resolve, reject) => {
                         let thisBuilding = currentBuilding!;
                         let index = +path.replace(/\.png$/, '')?.match(/\d+$/)![0];
