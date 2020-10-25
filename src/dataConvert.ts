@@ -43,6 +43,22 @@ function blocklistToPalette(blocklistItem: BlocklistItem, index: number): Palett
             placeAfter: blocklistItem.placeAfter,
         };
     }
+    else if(/^free./.test(blocklistItem.identifier)) {
+        return {
+            name: 'millenaire:freeblock',
+            properties: { resource: blocklistItem.identifier.replace(/^free/, '') },
+            index,
+            placeAfter: false,
+        }
+    }
+    else if(/.source$/.test(blocklistItem.identifier)) {
+        return {
+            name: 'millenaire:source',
+            properties: { resource: blocklistItem.identifier.replace(/source$/, '') },
+            index,
+            placeAfter: false,
+        }
+    }
     else {
         let custom = customBlocklist[blocklistItem.identifier];
         if(custom) {
@@ -104,14 +120,16 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                     let paletteItem: PaletteItem | null = paletteLookup[colourString];
                     if(!paletteItem) {
                         let blocklistItem = blocklist[colourString];
-                        if(!blocklistItem) {
-                            throw new Error(`Unrecognized colour ${colourString} loading building ${buildingData.path}`);
+                        if(blocklistItem) {
+                            paletteItem = blocklistToPalette(blocklistItem, paletteIndex);
+                            if(paletteItem) {
+                                paletteLookup[colourString] = paletteItem;
+                                paletteArray.push(paletteItem);
+                                paletteIndex++;
+                            }
                         }
-                        paletteItem = blocklistToPalette(blocklistItem, paletteIndex);
-                        if(paletteItem) {
-                            paletteLookup[colourString] = paletteItem;
-                            paletteArray.push(paletteItem);
-                            paletteIndex++;
+                        else {
+                            console.log(`Warning: Unrecognized colour ${colourString} loading building ${buildingData.path}`);
                         }
                     }
                     if(paletteItem) {
