@@ -26,7 +26,7 @@ export interface BuildingData {
     blocks: BlockData[];
 }
 
-function blocklistToPalette(blocklistItem: BlocklistItem, index: number): PaletteItem | null {
+function blocklistToPalette(blocklistItem: BlocklistItem, index: number, buildingIndex: number): PaletteItem | null {
     if(blocklistItem.blockId.length) {
         let stateValues: {[key: string]: string} = {};
         if(blocklistItem.stateValues.length) {
@@ -71,7 +71,19 @@ function blocklistToPalette(blocklistItem: BlocklistItem, index: number): Palett
         }
     }
 
-    return null;
+    // haven't found a match. If 'preserveground' or this is an upgrade (not initial state)
+    // return nothing so existing block remains
+    if(blocklistItem.identifier === 'preserveground' || buildingIndex > 0) {
+        return null;
+    }
+    // for any unrecognized entry for base-level, return air so that existing ground blocks get cleared
+    // this is mostly for millenaire markers that aren't actual blocks - selling position, defending position, etc
+    return {
+        name: 'minecraft:air',
+        properties: {},
+        index,
+        placeAfter: false,
+    };
 }
 
 function getBedFootPalette(headPalette: PaletteItem, index: number): PaletteItem {
@@ -121,7 +133,7 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                     if(!paletteItem) {
                         let blocklistItem = blocklist[colourString];
                         if(blocklistItem) {
-                            paletteItem = blocklistToPalette(blocklistItem, paletteIndex);
+                            paletteItem = blocklistToPalette(blocklistItem, paletteIndex, png.index);
                             if(paletteItem) {
                                 paletteLookup[colourString] = paletteItem;
                                 paletteArray.push(paletteItem);
@@ -129,7 +141,7 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                             }
                         }
                         else {
-                            console.log(`Warning: Unrecognized colour ${colourString} loading building ${buildingData.path}`);
+                            console.log(`Warning: Unrecognized colour ${colourString} loading building ${buildingData.path} image ${png.path} x ${left + width - z - 1} y ${x}`);
                         }
                     }
                     if(paletteItem) {
