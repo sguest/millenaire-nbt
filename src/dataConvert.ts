@@ -1,4 +1,4 @@
-import { FileBuildingData } from "./fileParser";
+import { FileBuildingData } from "./fileParserTypes";
 import { Blocklist, BlocklistItem } from './blocklist';
 import customBlocklist from './customBlocklist';
 import customMeta from './customMeta';
@@ -145,12 +145,11 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
         let blocks: BlockData[] = [];
         let afterBlocks: BlockData[] = [];
 
-        for(let left = 0; left < png.context.canvas.width; left += width + 1) {
-            let layerData = png.context.getImageData(left, 0, width, length).data;
+        for(let left = 0; left < png.imageData.width; left += width + 1) {
             for(let x = 0; x < length; x++) {
                 for(let z = 0; z < width; z++) {
-                    let baseIndex = (x * width + width - z - 1) * 4;
-                    let colourString = `${layerData[baseIndex]}/${layerData[baseIndex + 1]}/${layerData[baseIndex + 2]}`;
+                    let baseIndex = (x * png.imageData.width + left + width - z - 1) * 4;
+                    let colourString = `${png.imageData.data[baseIndex]}/${png.imageData.data[baseIndex + 1]}/${png.imageData.data[baseIndex + 2]}`;
                     let paletteItem: PaletteItem | null = paletteLookup[colourString];
                     if(!paletteItem) {
                         let blocklistItem = blocklist[colourString];

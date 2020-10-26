@@ -1,19 +1,34 @@
-import * as JSZip from 'jszip';
-import { parseBlocklist, Blocklist } from './blocklist';
-import { FileBuildingData, parseImage, parseTextFile } from './fileParser';
-import { convertBuilding, BuildingData } from './dataConvert';
-import { writeBuildings } from './nbtConvert';
-import { saveFile } from './fileWriter';
+/// <reference path="../types/file-saver.d.ts" />
 
-function finishBuilding(building: FileBuildingData, blocklist: Blocklist): Promise<BuildingData[]> {
+import JSZip = require("jszip");
+import { parseImage, parseTextFile } from "./fileParser";
+import { FileBuildingData } from "./fileParserTypes";
+
+let worker: Worker;
+
+function waitForBuilding(building: FileBuildingData): Promise<void> {
     return new Promise((resolve, reject) => {
         Promise.all(building.promises).then(() => {
-            resolve(convertBuilding(building, blocklist));
+            building.promises = [];
+            let transferred = [];
+            for(let png of building.pngs) {
+                transferred.push(png.imageData.data.buffer);
+            }
+            worker.postMessage({ cmd: 'building', data: building}, transferred);
+            resolve();
         });
     });
 }
 
 export function start() {
+    worker = new Worker('worker-main.js');
+    worker.addEventListener('message', e => {
+        let data = e.data;
+        if(data.cmd === 'output') {
+            saveAs(data.blob, 'buildings.zip');
+        }
+    });
+
     let blocklistInput = (document.querySelector('#blocklist')) as HTMLInputElement;
     let fileInput = (document.querySelector('#upload')) as HTMLInputElement;
     let goButton = (document.querySelector('#go')) as HTMLButtonElement;
@@ -24,15 +39,15 @@ export function start() {
             return;
         }
 
-        let blocklistData = parseBlocklist(blocklistInput.files);
+        worker.postMessage({ cmd: 'blocklist', data: blocklistInput.files});
 
         JSZip.loadAsync(fileInput.files[0]).then(zip => {
             let currentBuilding: FileBuildingData | null = null;
-            let buildingPromises: Array<Promise<BuildingData[]>> = [];
+            let buildingPromises: Array<Promise<void>> = [];
             zip.forEach((path, entry) => {
                 if(/\.txt$/.test(path)) {
                     if(currentBuilding) {
-                        buildingPromises.push(finishBuilding(currentBuilding, blocklistData));
+                        buildingPromises.push(waitForBuilding(currentBuilding));
                     }
                     currentBuilding = {
                         path: path,
@@ -60,12 +75,12 @@ export function start() {
             });
 
             if(currentBuilding) {
-                buildingPromises.push(finishBuilding(currentBuilding, blocklistData));
+                buildingPromises.push(waitForBuilding(currentBuilding));
             }
 
-            Promise.all(buildingPromises).then(buildings => {
-                saveFile(writeBuildings(buildings.flat()));
-            });
+            Promise.all(buildingPromises).then(() => {
+                worker.postMessage({ cmd: 'buildingsDone'});
+            })
         });
     });
 }

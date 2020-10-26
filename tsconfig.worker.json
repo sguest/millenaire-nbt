@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "lib": ["esnext", "webworker"],
+        "strict": true,
+        "outFile": "./dist/worker.js",
+        "moduleResolution": "node",
+        "module": "amd",
+        "sourceMap": true,
+        "inlineSources": true
+    },
+    "include": [
+        "src/worker.ts"
+    ]
+}

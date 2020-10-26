@@ -1,37 +1,15 @@
 import * as JSZip from 'jszip';
-
-export interface FileBuildingData {
-    path: string;
-    textFile?: TxtBuildingData;
-    pngs: PngBuildingData[];
-    promises: Promise<void>[];
-}
-
-export interface PngBuildingData {
-    path: string;
-    context: CanvasRenderingContext2D;
-    index: number;
-}
-
-export interface TxtBuildingData {
-    width: number;
-    length: number;
-    startLevels: number[];
-}
+import { PngBuildingData, TxtBuildingData } from './fileParserTypes';
 
 export function parseImage(file: JSZip.JSZipObject, index: number, path: string): Promise<PngBuildingData> {
     return new Promise((resolve, reject) => {
-        let canvas = document.createElement('canvas');
-        let context = canvas.getContext('2d')!;
-        let image = new Image();
-        image.onload = () => {
-            context.canvas.width = image.width;
-            context.canvas.height = image.height;
+        file.async('blob').then(createImageBitmap).then(image => {
+            let canvas = document.createElement('canvas');
+            canvas.width = image.width;
+            canvas.height = image.height;
+            let context = canvas.getContext('2d')!;
             context.drawImage(image, 0, 0);
-            resolve({ context, index, path });
-        }
-        file.async('blob').then(blob => {
-            image.src = URL.createObjectURL(blob);
+            resolve({ imageData: context.getImageData(0, 0, image.width, image.height), index, path });
         });
     });
 }

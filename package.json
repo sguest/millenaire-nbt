@@ -13,10 +13,13 @@
   },
   "scripts": {
     "build": "yarn run build.static && yarn run build.typescript",
-    "build.typescript": "tsc -p tsconfig.client.json",
+    "build.typescript": "yarn run build.typescript.client && yarn run build.typescript.worker",
+    "build.typescript.client": "tsc -p tsconfig.client.json",
+    "build.typescript.worker": "tsc -p tsconfig.worker.json",
     "build.static": "copyfiles --up 1 public/**/*.* dist && copyfiles --up 1 lib/**/*.* dist && copyfiles --up 2 node_modules/requirejs/require.js dist && copyfiles --up 3 node_modules/jszip/dist/jszip.js dist && copyfiles --up 2 node_modules/nbt/nbt.js dist",
-    "watch": "tsc -p tsconfig.client.json --watch",
-    "dev": "concurrently \"npm:watch\" \"npm:dev.server\"",
+    "watch.client": "tsc -p tsconfig.client.json --watch",
+    "watch.worker": "tsc -p tsconfig.worker.json --watch",
+    "dev": "concurrently \"npm:watch.client\" \"npm:watch.worker\" \"npm:dev.server\"",
     "dev.server": "ts-node ./server.ts"
   },
   "devDependencies": {

@@ -1,6 +1,5 @@
 /// <reference path="../types/nbt.d.ts" />
 
-import * as nbt from 'nbt';
 import { BuildingData } from "./dataConvert";
 
 export interface NbtFile {
@@ -8,10 +7,7 @@ export interface NbtFile {
     data: ArrayBuffer
 }
 
-// ensure that require actually loads nbt.js
-let nbtRef = nbt;
-
-export function writeBuildings(buildings: BuildingData[]): NbtFile[] {
+export function writeBuildings(buildings: BuildingData[], nbtRef: nbt): NbtFile[] {
     let results: NbtFile[] = [];
     for(let building of buildings) {
         let paletteValues = building.palette.map(p => {
@@ -47,7 +43,7 @@ export function writeBuildings(buildings: BuildingData[]): NbtFile[] {
                 }}
             }
         }
-        results.push({ path: building.path + '.nbt', data: window.nbt.writeUncompressed(nbtValues) });
+        results.push({ path: building.path + '.nbt', data: nbtRef.writeUncompressed(nbtValues) });
     }
 
     return results;
