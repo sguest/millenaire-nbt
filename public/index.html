@@ -3,12 +3,31 @@
     <head>
         <meta charset="utf-8" />
         <title>Millenaire NBT structure converter</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     </head>
     <body>
-        <input type="file" id="blocklist" multiple />
-        <input type="file" id="upload" />
-        <label><input type="checkbox" id="deltaOnly" /> Upgrades contain changed blocks only</label>
-        <button type="button" id="go">Go</button>
+        <div class="container">
+            <h1>Millenaire to NBT structure converter</h1>
+            <h2>Blocklist</h2>
+            <p>Include the base millenaire blocklist.txt here</p>
+            <p>If converting buildings from mods that use their own blocklist.txt, include those too.</p>
+            <input type="file" id="blocklist" multiple />
+            <h2>Structures</h2>
+            <p>Upload a zip file containing both the .txt and .png files of the building(s) you wish to convert. Use the standard Millenaire naming convention for the files.</p>
+            <p>Nested folders are supported, however if you upload too many at once be prepared for your browser to start using a lot of memory while it performs the conversion.</p>
+            <input type="file" id="upload" />
+            <br />
+            <label><input type="checkbox" id="deltaOnly" /> Only include changed blocks in upgrade structure files, instead of the entire structure</label>
+            <br />
+            <button type="button" id="go" class="btn btn-primary">Go</button>
+            <button type="button" id="download" class="btn btn-primary d-none" disabled>
+                <span id="download-icon" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span id="download-text">Working...</span>
+            </button>
+            <p>See <a href="https://github.com/sguest/millenaire-nbt#known-issueslimitations">the github README</a> for known issues and limitations</p>
+            <div id="message-board" style="max-height: 200px; overflow-y: scroll;"></div>
+        </div>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" ></script>
         <script data-main="main" src="require.js"></script>
     </body>

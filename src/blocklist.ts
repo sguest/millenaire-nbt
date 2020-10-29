@@ -31,6 +31,8 @@ export function parseBlocklist(files: FileList): Blocklist {
                     }
                 }
             }
+        }).catch(e => {
+            throw e;
         })
     });
 

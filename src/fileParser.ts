@@ -10,6 +10,8 @@ export function parseImage(file: JSZip.JSZipObject, index: number, path: string)
             let context = canvas.getContext('2d')!;
             context.drawImage(image, 0, 0);
             resolve({ imageData: context.getImageData(0, 0, image.width, image.height), index, path });
+        }).catch(e => {
+            reject(e);
         });
     });
 }
@@ -36,6 +38,8 @@ export function parseTextFile(file: JSZip.JSZipObject): Promise<TxtBuildingData>
                 }
             }
             resolve({width, length, startLevels});
+        }).catch(e => {
+            reject(e);
         });
     });
 }

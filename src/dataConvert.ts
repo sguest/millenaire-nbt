@@ -42,7 +42,7 @@ function blocklistToPalette(blocklistItem: BlocklistItem, index: number, buildin
                     stateValues = blockStateLookup[meta];
                 }
                 else {
-                    console.log(`Warning: unrecognized meta value ${meta} for block ID ${blocklistItem.blockId}. Using base version of block.`)
+                    postMessage({cmd: 'warning', message: `Warning: unrecognized meta value ${meta} for block ID ${blocklistItem.blockId}. Using base version of block.`});
                 }
             }
         }
@@ -184,7 +184,7 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                             }
                         }
                         else {
-                            console.log(`Warning: Unrecognized colour ${colourString} loading building ${buildingData.path} image ${png.path} x ${left + width - z - 1} y ${x}`);
+                            postMessage({cmd: 'warning', message: `Warning: Unrecognized colour ${colourString} loading building ${buildingData.path} image ${png.path} x ${left + width - z - 1} y ${x}`});
                         }
                     }
                     if(paletteItem) {

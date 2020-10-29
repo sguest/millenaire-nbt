@@ -14,6 +14,8 @@ export function generateFile(buildings: NbtFile[]): Promise<Blob> {
     return new Promise((resolve, reject) => {
         zip.generateAsync({type: 'blob'}).then(blob => {
             resolve(blob);
+        }).catch(e => {
+            reject(e);
         });
     });
 }

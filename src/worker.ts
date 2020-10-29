@@ -37,7 +37,12 @@ export function start(nbtRef: nbt) {
     }
 
     self.addEventListener<'message'>('message', e => {
-        let data = e.data;
-        handlers[data.cmd](data.data);
+        try {
+            let data = e.data;
+            handlers[data.cmd](data.data);
+        }
+        catch(e) {
+            postMessage({cmd: 'error', message: e.toString()})
+        }
     });
 }
