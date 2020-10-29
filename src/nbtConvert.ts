@@ -22,12 +22,30 @@ export function writeBuildings(buildings: BuildingData[], nbtRef: nbt): NbtFile[
                 Properties: { type: 'compound', value: propertyValues }
             };
         });
-        let blockValues = building.blocks.map(b => ({
-            state: { type: 'int', value: b.paletteIndex },
-            pos: { type: 'list', value: {
-                type: 'int', value: [b.x, b.y, b.z],
-            }}
-        }));
+        let blocks = [];
+        let afterBlocks = [];
+        for(let x = 0; x < building.length; x++) {
+            for(let y = building.startLevel; y < building.height - building.startLevel; y++) {
+                for(let z = 0; z < building.width; z++) {
+                    let blockData = building.blocks[x] && building.blocks[x][y] && building.blocks[x][y][z];
+                    if(blockData) {
+                        let blockItem = {
+                            state: { type: 'int', value: blockData.state },
+                            pos: { type: 'list', value: {
+                                type: 'int', value: [x, y, z],
+                            }}
+                        };
+                        if(blockData.after) {
+                            afterBlocks.push(blockItem);
+                        }
+                        else {
+                            blocks.push(blockItem);
+                        }
+                    }
+                }
+            }
+        }
+        let blockValues = blocks.concat(...afterBlocks);
         let nbtValues = {
             name: '',
             value: {

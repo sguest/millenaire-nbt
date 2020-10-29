@@ -7,8 +7,9 @@
     <body>
         <input type="file" id="blocklist" multiple />
         <input type="file" id="upload" />
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" ></script>
+        <label><input type="checkbox" id="deltaOnly" /> Upgrades contain changed blocks only</label>
         <button type="button" id="go">Go</button>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" ></script>
         <script data-main="main" src="require.js"></script>
     </body>
 </html>

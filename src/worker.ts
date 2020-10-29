@@ -4,10 +4,10 @@ import { generateFile } from "./fileGenerator";
 import { FileBuildingData } from "./fileParserTypes";
 import { writeBuildings } from "./nbtConvert";
 
-function finishBuilding(building: FileBuildingData, blocklist: Blocklist): Promise<BuildingData[]> {
+function finishBuilding(building: FileBuildingData, blocklist: Blocklist, deltaOnly: boolean): Promise<BuildingData[]> {
     return new Promise((resolve, reject) => {
         Promise.all(building.promises).then(() => {
-            resolve(convertBuilding(building, blocklist));
+            resolve(convertBuilding(building, blocklist, deltaOnly));
         });
     });
 }
@@ -21,8 +21,8 @@ export function start(nbtRef: nbt) {
         blocklist: (blocklistFiles) => {
             blocklistData = parseBlocklist(blocklistFiles);
         },
-        building: (buildingData) => {
-            buildingPromises.push(finishBuilding(buildingData, blocklistData));
+        building: (data) => {
+            buildingPromises.push(finishBuilding(data.building, blocklistData, data.deltaOnly));
         },
         buildingsDone: () => {
             Promise.all(buildingPromises).then(buildings => {

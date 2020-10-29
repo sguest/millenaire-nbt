@@ -10,12 +10,9 @@ export interface PaletteItem {
     placeAfter: boolean;
 }
 
-export interface BlockData {
-    paletteIndex: number;
-    x: number;
-    y: number;
-    z: number;
-    // NBT would go here
+export interface BlockItem {
+    state: number;
+    after: boolean;
 }
 
 export interface BuildingData {
@@ -23,8 +20,9 @@ export interface BuildingData {
     width: number;
     length: number;
     height: number;
+    startLevel: number;
     palette: PaletteItem[];
-    blocks: BlockData[];
+    blocks: BlockItem[][][];
 }
 
 function blocklistToPalette(blocklistItem: BlocklistItem, index: number, buildingIndex: number): PaletteItem | null {
@@ -129,21 +127,45 @@ let bedDeltas: {[key: string]: {x: number, z: number}} = {
     east: {x: -1, z: 0},
 }
 
-export function convertBuilding(buildingData: FileBuildingData, blocklist: Blocklist): BuildingData[] {
+export function convertBuilding(buildingData: FileBuildingData, blocklist: Blocklist, deltaOnly: boolean): BuildingData[] {
     let buildings: BuildingData[] = [];
     let width = buildingData.textFile!.width;
     let length = buildingData.textFile!.length;
     let startLevel = 0;
+    let blocks: BlockItem[][][] = [];
+    let paletteLookup: {[key: string]: PaletteItem} = {};
+    let paletteArray: PaletteItem[] = [];
+    let paletteIndex = 0;
+
     for(let png of buildingData.pngs) {
-        let paletteLookup: {[key: string]: PaletteItem} = {};
-        let paletteArray: PaletteItem[] = [];
-        let paletteIndex = 0;
         if(buildingData.textFile?.startLevels[png.index] !== undefined) {
             startLevel = buildingData.textFile?.startLevels[png.index];
         }
         let y = startLevel;
-        let blocks: BlockData[] = [];
-        let afterBlocks: BlockData[] = [];
+        if(deltaOnly) {
+            blocks = [];
+            paletteLookup = {};
+            paletteArray = [];
+            paletteIndex = 0;
+        }
+        else {
+            let newBlocks: BlockItem[][][] = [];
+            for(let x in blocks) {
+                newBlocks[x] = [];
+                for(let y in blocks[x]) {
+                    newBlocks[x][y] = blocks[x][y].slice();
+                }
+            }
+            blocks = newBlocks;
+            paletteArray = paletteArray.slice();
+            let newPaletteLookup: {[key: string]: PaletteItem} = {};
+            for(let key in paletteLookup) {
+                newPaletteLookup[key] = paletteLookup[key];
+            }
+            paletteLookup = newPaletteLookup;
+            // "Empty" is treated differently in base building vs upgrades, so ensure this is cleared out
+            delete paletteLookup['255/255/255'];
+        }
 
         for(let left = 0; left < png.imageData.width; left += width + 1) {
             for(let x = 0; x < length; x++) {
@@ -166,7 +188,9 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                         }
                     }
                     if(paletteItem) {
-                        let newBlocks = [{x, y, z, paletteIndex: paletteItem.index}];
+                        blocks[x] = blocks[x] || [];
+                        blocks[x][y] = blocks[x][y] || [];
+                        blocks[x][y][z] = { state: paletteItem.index, after: paletteItem.placeAfter };
                         if(paletteItem.properties.part === 'head' && !!paletteItem.properties.facing) {
                             // Assuming this is the head of a bed, add the foot
                             let fakeColourString = `${paletteItem.name}-foot-${paletteItem.properties.facing}`;
@@ -177,13 +201,11 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
                                 paletteIndex++;
                             }
                             let delta = bedDeltas[paletteItem.properties.facing];
-                            newBlocks.push({x: x + delta.x, y, z: z + delta.z, paletteIndex: footPalette.index});
-                        }
-                        if(paletteItem.placeAfter) {
-                            afterBlocks.push(...newBlocks);
-                        }
-                        else {
-                            blocks.push(...newBlocks);
+                            let footX = x + delta.x;
+                            let footZ = z + delta.z;
+                            blocks[footX] = blocks[footX] || [];
+                            blocks[footX][y] = blocks[footX][y] || [];
+                            blocks[footX][y][footZ] = { state: footPalette.index, after: paletteItem.placeAfter }
                         }
                     }
                 }
@@ -195,9 +217,10 @@ export function convertBuilding(buildingData: FileBuildingData, blocklist: Block
             path: buildingData.path.replace(/\.txt$/, '') + png.index,
             width,
             length,
-            height: y,
+            height: y - startLevel,
+            startLevel,
             palette: paletteArray,
-            blocks: blocks.concat(afterBlocks),
+            blocks,
         });
     }
 
